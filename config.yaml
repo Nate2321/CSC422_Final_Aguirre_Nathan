@@ -1,0 +1,99 @@
+# Plant Disease Classification - Configuration File
+
+# Model Configuration (ResNet50 Only)
+model:
+  num_classes: 16  # Actual number of disease classes in preprocessed PlantVillage dataset
+  pretrained: true  # Use ImageNet pretrained weights
+  freeze_backbone: true  # Freeze backbone layers (transfer learning)
+  dropout_rate: 0.5  # Dropout rate for regularization
+
+# Data Configuration
+data:
+  raw_dir: 'data/raw/PlantVillage'
+  processed_dir: 'data/processed'
+  train_dir: 'data/processed/train'
+  val_dir: 'data/processed/val'
+  test_dir: 'data/processed/test'
+  image_size: 224  # Input image size (224x224)
+  batch_size: 32  # Batch size for training
+  num_workers: 0  # Number of data loading workers (0 for macOS compatibility)
+  pin_memory: true  # Pin memory for faster GPU transfer
+  use_advanced_augmentation: true  # Use Albumentations (vs basic torchvision)
+  
+  # Data split ratios
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  seed: 42  # Random seed for reproducibility
+
+# Training Configuration
+training:
+  num_epochs: 50  # Maximum number of epochs
+  learning_rate: 0.001  # Initial learning rate
+  weight_decay: 0.0001  # L2 regularization (1e-4)
+  optimizer: 'adam'  # Options: adam, sgd, adamw
+  
+  # Learning rate scheduler
+  scheduler: 'reduce_on_plateau'  # Options: reduce_on_plateau, cosine, step, none
+  scheduler_params:
+    factor: 0.1  # Reduce LR by this factor
+    patience: 5  # Epochs to wait before reducing LR
+    min_lr: 0.000001  # Minimum learning rate
+  
+  # Early stopping
+  early_stopping_patience: 10  # Stop if no improvement for N epochs
+  
+  # Checkpointing
+  save_frequency: 5  # Save checkpoint every N epochs
+  save_best_only: false  # Only save the best model
+
+# Fine-tuning Configuration (optional - for second phase training)
+fine_tuning:
+  enabled: false  # Set to true to enable fine-tuning
+  unfreeze_epoch: 20  # Epoch at which to unfreeze backbone
+  learning_rate: 0.0001  # Lower learning rate for fine-tuning
+  unfreeze_from_layer: -4  # Unfreeze from this layer onwards (negative = from end)
+
+# Paths
+paths:
+  save_dir: 'results/models'  # Model checkpoints
+  log_dir: 'results/logs'  # TensorBoard logs
+  eval_dir: 'results/evaluation'  # Evaluation results
+  figures_dir: 'results/figures'  # Visualization outputs
+
+# Experiment Tracking
+experiment:
+  name: 'plant_disease_resnet50'  # Experiment name
+  description: 'ResNet50 model with transfer learning for plant disease classification'
+  tags:
+    - 'resnet50'
+    - 'transfer_learning'
+  use_tensorboard: true  # Log to TensorBoard
+  use_wandb: false  # Log to Weights & Biases (requires account)
+
+# Hardware Configuration
+hardware:
+  device: 'auto'  # Options: auto, cuda, cpu
+  mixed_precision: false  # Use automatic mixed precision (AMP)
+  cudnn_benchmark: true  # Enable cuDNN benchmark mode
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - 'accuracy'
+    - 'precision'
+    - 'recall'
+    - 'f1_score'
+    - 'confusion_matrix'
+    - 'roc_auc'
+  
+  # Test-time augmentation
+  use_tta: false  # Use test-time augmentation for inference
+  tta_n_augments: 5  # Number of TTA augmentations
+  
+  # Visualization
+  plot_training_curves: true
+  plot_confusion_matrix: true
+  plot_per_class_metrics: true
+  plot_sample_predictions: true
+  n_sample_predictions: 16  # Number of sample predictions to visualize
